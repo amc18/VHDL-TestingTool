@@ -19,16 +19,16 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 
 entity Bode_Plot is
-    Port ( clk : in std_logic;
-    data_dut_in : in std_logic_vector(15 downto 0);
-    data_in : in std_logic_vector(7 downto 0);
-    data_in_sync : in std_logic;
-    data_out : out std_logic_vector(7 downto 0); 
-    data_out_bode: out std_logic_vector(15 downto 0);
-    busy : in std_logic;
-    done : out std_logic;
-    allow : in std_logic;
-    strb: out std_logic
+    Port ( clk : in std_logic;                        -- clock
+    data_dut_in : in std_logic_vector(15 downto 0);   -- signal from DUT output
+    data_in : in std_logic_vector(7 downto 0);        -- data from PC on 8 bits
+    data_in_sync : in std_logic;                      -- data reception's synchronisation
+    data_out : out std_logic_vector(7 downto 0);      -- data for PC on 8 bits
+    data_out_bode: out std_logic_vector(15 downto 0); -- signal for DUT input
+    busy : in std_logic;                              -- signal busy for tx 
+    done : out std_logic;                             -- end of Bode plot set up
+    allow : in std_logic;                             -- allow Bode plot to work
+    strb: out std_logic                               -- signal strb for tx
      );
 end Bode_Plot;
 
@@ -51,14 +51,14 @@ signal sig_sinus : std_logic_vector(15 downto 0);  -- sinus signal
 signal sig_sinus_r: std_logic_vector(15 downto 0); -- retarded sinus of 1 clock stroke
 
 signal allow_r :std_logic; -- retarded allow signal of 1 clock stroke
-signal num_byte: std_logic_vector(3 downto 0); -- signal used for data's emission
+signal num_byte: std_logic_vector(4 downto 0); -- signal used for data's emission
 
 signal amplitude_dut : std_logic_vector(15 downto 0); -- amplitude of dut signal
 signal phase : std_logic_vector(31 downto 0);         -- phase of dut signal
 signal data_dut_in_r: std_logic_vector(15 downto 0);  -- retarded sinus of 1 clock stroke
-signal done_phase : std_logic_vector(1 downto 0);     -- 
-signal phase1 :std_logic_vector(31 downto 0);         -- 
-signal phase2 :std_logic_vector(31 downto 0);         --
+signal done_phase : std_logic_vector(1 downto 0);     -- end of phase measurement 
+signal phase1 :std_logic_vector(31 downto 0);         -- phase measurement n°1
+signal phase2 :std_logic_vector(31 downto 0);         -- phase measurement n°2
 
     COMPONENT blk_mem_gen_0
     PORT (
@@ -164,33 +164,45 @@ begin
                                     end if;
                                 end if;
                   when Send_Data => if busy='0' then -- data emission
-                                        strb <= '1'; -- 1 byte is send 2 times each measered data for a good PC reception 
+                                        strb <= '1'; -- 1 byte is sent between 2 measures data for a good PC reception  
                                          case num_byte is 
-                                            when "0000" => data_out <= amplitude_dut(7 downto 0);
-                                                           num_byte <= "0001";
-                                            when "0001" => data_out <= amplitude_dut(7 downto 0);
-                                                           num_byte <= "0010"; 
-                                            when "0010" => data_out <= amplitude_dut(15 downto 8);
-                                                           num_byte <= "0011";                                            
-                                            when "0011" => data_out <= amplitude_dut(15 downto 8);
-                                                           num_byte <= "0100";
-                                            when "0100" => data_out <= phase(7 downto 0);
-                                                           num_byte <= "0101";
-                                            when "0101" => data_out <= phase(7 downto 0);
-                                                           num_byte <= "0110";
-                                            when "0110" => data_out <= phase(15 downto 8);
-                                                           num_byte <= "0111";
-                                            when "0111" => data_out <= phase(15 downto 8);
-                                                           num_byte <= "1000";
-                                            when "1000" => data_out <= phase(23 downto 16);
-                                                           num_byte <= "1001";
-                                            when "1001" => data_out <= phase(23 downto 16);
-                                                           num_byte <= "1010";
-                                            when "1010" => data_out <= phase(31 downto 24);
-                                                           num_byte <= "1011";
-                                            when others => data_out <= phase(31 downto 24);
-                                                           num_byte <= "0000";
-                                                           b_state <= PreWaiting;
+                                            when "00000" =>data_out <= "01010101";
+                                                           num_byte <= "00001";
+                                            when "00001" =>data_out <= "11111111"; -- could be used for other things
+                                                           num_byte <= "00010"; 
+                                            when "00010" =>data_out <= "01010101";
+                                                           num_byte <= "00011";                                            
+                                            when "00011" =>data_out <= "01111111"; -- could be used for other things
+                                                           num_byte <= "00100";
+                                            when "00100" =>data_out <= "01010101";
+                                                           num_byte <= "00101";
+                                            when "00101" =>data_out <= amplitude_dut(7 downto 0); -- amplitude sending
+                                                           num_byte <= "00110";
+                                            when "00110" =>data_out <= "01010101";
+                                                           num_byte <= "00111";
+                                            when "00111" =>data_out <= amplitude_dut(15 downto 8); -- amplitude sending
+                                                           num_byte <= "01000";
+                                            when "01000" =>data_out <= "01010101";
+                                                           num_byte <= "01001";
+                                            when "01001" =>data_out <= phase(7 downto 0); -- phase sending
+                                                           num_byte <= "01010";
+                                            when "01010" =>data_out <= "01010101";
+                                                           num_byte <= "01011";
+                                            when "01011" =>data_out <= phase(15 downto 8); -- phase sending
+                                                           num_byte <= "01100";      
+                                            when "01100" =>data_out <= "01010101";
+                                                           num_byte <= "01101";
+                                            when "01101" =>data_out <= phase(23 downto 16); -- phase sending
+                                                           num_byte <= "01110";                                             
+                                            when "01110" =>data_out <= "01010101";
+                                                           num_byte <= "01111"; 
+                                            when "01111" =>data_out <= phase(31 downto 24); -- phase sending
+                                                           num_byte <= "10000";  
+                                            when "10000" =>data_out <= "01010101";
+                                                           num_byte <= "10001";                       
+                                            when others =>data_out <= "00000000"; -- could be used for other things
+                                                          num_byte <= "00000";
+                                                          b_state <= PreWaiting;
                                        end case;
                                    end if;
                      when PreWaiting => sig_pa <= "0000000000000000000000000000000000000"; --reset of signals

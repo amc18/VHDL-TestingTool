@@ -27,7 +27,9 @@ entity TestTool is
            rx : in std_logic;   -- Connected to FPGA's rx port
            tx : out std_logic;  -- Connected to FPGA's tx port
            sig_A : out std_logic_vector(15 downto 0); --Signal A Out on 16 bits  (signed)
-           sig_B : out std_logic_Vector(15 downto 0)  --Signal A Out on 16 bits  (signed)
+           sig_B : out std_logic_Vector(15 downto 0); --Signal A Out on 16 bits  (signed)
+           sig_from_DUT : in std_logic_vector(15 downto 0); -- Signal from DUT 16 bits (signed)
+           sig_strb : out std_logic -- Strob signal, '1' when generators or Bode plot works, '0' if not
            );
 end TestTool;
 
@@ -36,8 +38,8 @@ architecture Behavioral of TestTool is
 --Signals used for Transmission end Reception using RS-232 protocol  
 signal en_16Xrate: std_logic;
 signal EN_115200 : std_logic;
-signal rx_cmpt: integer range 0 to 325;
-signal cpt_115200 : integer range 0 to 1000:=0;
+signal rx_cmpt: integer range 0 to 54;
+signal cpt_115200 : integer range 0 to 868;
 signal rx_strb: std_logic;
 signal rx_data: std_logic_vector(7 downto 0);
 signal tx_strb: std_logic;
@@ -164,7 +166,7 @@ begin
 	
 	Inst_Bode_Plot :Bode_Plot PORT MAP(
     clk => clk,
-    data_dut_in => data_dut_in,
+    data_dut_in => sig_from_DUT,
     data_in => data_in_bode,
     data_in_sync => data_in_sync_bode,
     data_out => tx_data,
@@ -231,6 +233,7 @@ process(clk)
                   case sig_step is
                         when Waiting =>
                               if rx_data/="00000000" then -- end of Waiting
+                                  sig_strb <= '0';
                                   allow1 <= '0';
                                   allow2 <= '0';
                                   allow_bode <='0';
@@ -268,6 +271,7 @@ process(clk)
                        when Bode2 => allow_bode<='1';
                                      sig_step <= PreWaiting;
                        when PreWaiting => sig_step <=Waiting;
+                                          sig_strb <= '1';
                        when others => sig_step <= Waiting;
                   end case;
              end if;

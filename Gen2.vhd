@@ -21,7 +21,7 @@ use IEEE.STD_LOGIC_ARITH.ALL;
 
 entity Gen2 is
     Port ( clk : in STD_LOGIC;                              -- clock
-           data_in : in std_logic_vector(7 downto 0);       -- data from main on 8 bits
+           data_in : in std_logic_vector(7 downto 0);       -- data from PC on 8 bits
            data_in_sync : in std_logic;                     -- data reception's synchronisation
            data_out : out std_logic_vector(15 downto 0);    -- signal generated on 16 bits (signed) 
            allow : in std_logic;                            -- allow Gen1 to work
