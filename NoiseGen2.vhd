@@ -5,7 +5,7 @@
 -- Create Date: 28/04/2020
 -- Module Name: NoiseGen2 - Behavioral
 -- Project Name: TestTool
--- Target Devices: Nexys 4
+-- Target Devices: Basys 3
 -- Tool Versions: 1.0
 -- Description: Noise generator controlled by C++ interface, 
 --              using RS-232 communication.
@@ -30,7 +30,7 @@ architecture Behavioral of NoiseGen2 is
     signal a : std_logic_vector (31 downto 0);
     signal b : std_logic_vector (31 downto 0);
     signal c : std_logic_vector (31 downto 0);
-    signal sig_out1 : std_logic_vector (15 downto 0);
+    
 begin
     -- VHDL implemention of Xorshift pseudorandom number generator
     process(clk)
@@ -45,9 +45,6 @@ begin
                                c <= (b XOR (b(26 downto 0)&"00000"));
                                sig_out<=c(15 downto 0);
             end case;
-            if sig_out1="1000000000000000" then sig_out<="1000000000000001";
-            else sig_out<=sig_out1;
-            end if;
         end if;
     end process;
 

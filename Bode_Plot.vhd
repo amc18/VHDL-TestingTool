@@ -5,7 +5,7 @@
 -- Create Date: 28/04/2020
 -- Module Name: Bode_Plot - Behavioral
 -- Project Name: TestTool
--- Target Devices: Nexys 4
+-- Target Devices: Basys 3
 -- Tool Versions: 1.0
 -- Description: Bode plot function controlled by C++ interface, 
 --              using RS-232 communication.
@@ -164,7 +164,7 @@ begin
                                     end if;
                                 end if;
                   when Send_Data => if busy='0' then -- data emission
-                                        strb <= '1'; -- 1 byte is sent between 2 measures data for a good PC reception  
+                                        strb <= '1'; -- 1 byte is sent 2 times each measered data for a good PC reception 
                                          case num_byte is 
                                             when "00000" =>data_out <= "01010101";
                                                            num_byte <= "00001";

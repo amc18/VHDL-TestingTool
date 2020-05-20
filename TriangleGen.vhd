@@ -5,7 +5,7 @@
 -- Create Date: 28/04/2020
 -- Module Name: TriangleGen - Behavioral
 -- Project Name: TestTool
--- Target Devices: Nexys 4
+-- Target Devices: Basys 3
 -- Tool Versions: 1.0
 -- Description: Triangle signal generator controlled by C++ interface, 
 --              using RS-232 communication.

@@ -5,11 +5,11 @@
 -- Create Date: 28/04/2020
 -- Module Name: Gen2 - Behavioral
 -- Project Name: TestTool
--- Target Devices: Nexys 4
+-- Target Devices: Basys 3
 -- Tool Versions: 1.0
 -- Description: Function generator controlled by C++ interface, 
 --              using RS-232 communication.
---              Include sinus,triangle,square,noise,custom generators.
+--              Include sinus,triangle,square,noise.
 --              This program take place in a school projet from ENSIL-ENSCI.
 --              This projet isn't designed for safety-critical systems.
 ----------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ end Gen2;
 architecture Behavioral of Gen2 is
 
 --Signal Generation
-type r_state is (Waiting,PreWaiting,Sinus,Square,Triangle,Noise,Ram);
+type r_state is (Waiting,PreWaiting,Sinus,Square,Triangle,Noise);
 
 signal state_in1 : r_state :=Waiting;
 signal state_out : r_state :=Waiting;
@@ -54,19 +54,10 @@ signal sig_sinus : std_logic_vector(15 downto 0);
 signal sig_square : std_logic_vector(15 downto 0);
 signal sig_triangle : std_logic_vector(15 downto 0);
 signal sig_noise : std_logic_vector(15 downto 0);
-signal sig_ram : std_logic_vector(15 downto 0);
 
 signal sig_op_1 : std_logic_vector(15 downto 0); -- signal generated after limitation
 signal sig_op_2 : std_logic_vector(47 downto 0); -- signal after amplitude
 signal sig_op_3 : std_logic_vector(16 downto 0); -- signal after offset
--- signals for RAM use
-signal sig_wea :  std_logic_vector(0 downto 0);   
-signal sig_ram_cpt : std_logic_vector(15 downto 0);
-signal sig_ram_cpt_1 : std_logic_vector(15 downto 0);
-signal sig_ram_cpt_2 : std_logic_vector(31 downto 0);
-signal sig_ram_in : std_logic_vector(15 downto 0);
-signal sig_ram_size : std_logic_vector(15 downto 0);
-signal state_ram : std_logic_vector(1 downto 0);
 
     COMPONENT blk_mem_gen_2
     PORT (
@@ -106,17 +97,6 @@ signal state_ram : std_logic_vector(1 downto 0);
     );
     END COMPONENT;
     
-    COMPONENT blk_mem_gen_4
-    PORT (
-    clka : IN STD_LOGIC;
-    ena : IN STD_LOGIC;
-    wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    addra : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    dina : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-    douta : OUT STD_LOGIC_VECTOR(15 DOWNTO 0)
-    );
-    END COMPONENT;
-    
 begin
 	 
  Inst_blk_mem_gen_2:blk_mem_gen_2 PORT MAP(
@@ -124,15 +104,6 @@ begin
     douta => sig_sinus,
     clka => clk,
     ena => '1'
-    );
-
-  Inst_blk_mem_gen_4:blk_mem_gen_4 PORT MAP(
-    clka => clk,
-    ena  => '1',
-    wea  => sig_wea,
-    addra => sig_ram_cpt,
-    dina  => sig_ram_in,
-    douta  => sig_ram
     );
     
 Inst_SquareGen:SquareGen2 PORT MAP(
@@ -163,15 +134,6 @@ Inst_NoiseGen:NoiseGen2 PORT MAP(
     process(clk)
     begin
         if rising_edge(clk) then
-            if state_ram="10" then -- incrementation of RAM input signal
-                                sig_ram_cpt_1<=sig_ram_cpt_1+"0000000000000001"; 
-                                state_ram <= "00";
-                                if sig_ram_cpt_1=sig_c then -- end of data storage on RAM
-                                     sig_wea<="0";
-                                     num_data<="00000111";
-                                     sig_ram_cpt_1<="0000000000000000";
-                                end if;
-            end if;
             if data_in_sync='1' then
             case state_in1 is 
                 when Waiting => 
@@ -186,8 +148,6 @@ Inst_NoiseGen:NoiseGen2 PORT MAP(
                                                state_out <= Triangle;
                             when "00000100" => state_in1 <= Noise;
                                                state_out <= Noise;
-                            when "00000101" => state_in1 <= Ram;
-                                               state_out <= Ram;
                             when others => state_in1 <= Waiting;
                                            state_out <= Waiting;
                         end case;
@@ -289,40 +249,6 @@ Inst_NoiseGen:NoiseGen2 PORT MAP(
                                            
                         when Others =>  state_in1 <= Waiting;
                         end case;
-                when Ram => -- set up of RAM use for custom signal
-                     case num_data is
-                        when "00000000" => sig_m(7 downto 0)<=data_in;
-                                           num_data<="00000001";
-                        when "00000001" => sig_m(15 downto 8)<=data_in;
-                                           num_data<="00000010";
-                        when "00000010" => sig_m(23 downto 16)<=data_in;
-                                           num_data<="00000011";
-                        when "00000011" => sig_m(31 downto 24)<=data_in;
-                                           num_data<="00000100";
-                        when "00000100" => sig_c(7 downto 0) <=data_in;
-                                           num_data<="00000101";
-                        when "00000101" => sig_c(15 downto 8) <=data_in;
-                                           num_data<="00000110";
-                                           sig_wea<="1"; -- RAM writting enable
-                                           sig_ram_cpt_1<="0000000000000000";
-                                           state_ram <= "00";
-                        when "00000110" => case state_ram is -- 8 LSB of coefficient are stored first
-                                                when "00" =>  sig_ram_in(7 downto 0) <= data_in;
-                                                              state_ram <= "01";
-                                                when others =>  sig_ram_in(15 downto 8) <= data_in;
-                                                              state_ram <= "10";
-                                           end case;
-                        when "00000111" => sig_offset(7 downto 0)<=data_in;
-                                           num_data<="00001000";
-                        when "00001000" => sig_offset(15 downto 8)<=data_in;
-                                           num_data<="00001001";
-                        when "00001001" => sig_amplitude(7 downto 0)<=data_in;
-                                           num_data<="00001010";
-                        when "00001010" => sig_amplitude(15 downto 8)<=data_in;
-                                           state_in1 <= PreWaiting;
-                                           done <= '1';
-                        when Others =>  state_in1 <= Waiting;
-                      end case;
                 when others => state_in1<=Waiting;
                                num_data<="00000000";
                                done<='0';
@@ -339,24 +265,10 @@ Inst_NoiseGen:NoiseGen2 PORT MAP(
                  sig_pa<=sig_pa+sig_m;
         end if;
     end process;
-    -- Phase Accumulator used of custom signal generation
-    process(clk)
-    begin 
-        if rising_edge(clk) and allow='1' then
-                 sig_ram_cpt_2<=sig_ram_cpt_2+sig_m;
-                 if sig_ram_cpt_2(31 downto 16)=sig_c then -- limitation of RAM lecture 
-                    sig_ram_cpt_2(31 downto 16)<="0000000000000000";
-                 end if;
-        end if;
-    end process;
 
 -- ROM (sinus signal) input
 
     sig_rom_sinus<=sig_pa(31 downto 20);
-    
--- RAM (custom signal) input
-    
-    sig_ram_cpt <= sig_ram_cpt_2(31 downto 16) when allow='1' else sig_ram_cpt_1;
    
 -- Signal Generator
     -- Selection of wich signal is generated
@@ -368,7 +280,7 @@ Inst_NoiseGen:NoiseGen2 PORT MAP(
 	           when Square => sig_op_1 <= sig_square;
 	           when Triangle => sig_op_1 <= sig_triangle;
 	           when Noise => sig_op_1 <= sig_noise;
-	           when others => sig_op_1 <= sig_ram;
+	           when others => sig_op_1 <= "0000000000000000";
 	       end case;
 	   end if;
 	end process;

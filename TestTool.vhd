@@ -5,7 +5,7 @@
 -- Create Date: 28/04/2020
 -- Module Name: TestTool - Behavioral
 -- Project Name: TestTool
--- Target Devices: Nexys 4
+-- Target Devices: Basys 3
 -- Tool Versions: 1.0
 -- Description: 2 function generators and Bode plot function, controlled by C++ interface, 
 --              using RS-232 communication.
@@ -13,8 +13,8 @@
 --              This projet isn't designed for safety-critical systems.
 ----------------------------------------------------------------------------------
 
--- blk_men_gen 0,1,2 are ROM memory (4096 16 bits coefficients) with signed_sinus16bits.coe in it
--- blk_mem_gen 3,4 are RAM memory (65536 16 bits coefficients)
+-- blk_men_gen 0,1,2 are single port ROM memory (4096 16 bits coefficients) with signed_sinus16bits.coe in it
+-- blk_mem_gen 3 is single port RAM memory (65536 16 bits coefficients)
 -- they are findable in IP Catalog -> Basic Elements -> Memory Element -> Block Memory Generator 
 
 library IEEE;
@@ -27,9 +27,10 @@ entity TestTool is
            rx : in std_logic;   -- Connected to FPGA's rx port
            tx : out std_logic;  -- Connected to FPGA's tx port
            sig_A : out std_logic_vector(15 downto 0); --Signal A Out on 16 bits  (signed)
-           sig_B : out std_logic_Vector(15 downto 0); --Signal A Out on 16 bits  (signed)
+           sig_B : out std_logic_vector(15 downto 0);  --Signal B Out on 16 bits  (signed)
            sig_from_DUT : in std_logic_vector(15 downto 0); -- Signal from DUT 16 bits (signed)
            sig_strb : out std_logic -- Strob signal, '1' when generators or Bode plot works, '0' if not
+           
            );
 end TestTool;
 
@@ -166,7 +167,7 @@ begin
 	
 	Inst_Bode_Plot :Bode_Plot PORT MAP(
     clk => clk,
-    data_dut_in => sig_from_DUT,
+    data_dut_in => data_dut_in,
     data_in => data_in_bode,
     data_in_sync => data_in_sync_bode,
     data_out => tx_data,
@@ -194,6 +195,8 @@ begin
         allow => allow2,
         done => done2
      );
+  
+  data_dut_in <= sig_from_DUT;
      
 --Generation of en_16Xrate for rx components
 
@@ -262,6 +265,7 @@ process(clk)
                                      sig_step <= PreWaiting;
                                      allow1<='1';
                                      allow2<='1';
+                                     sig_strb <= '1';
                        when Bode1 => -- send data to Bode plot
                                     data_in_bode <= rx_data;
                                     data_in_sync_bode <= rx_strb;
@@ -269,9 +273,9 @@ process(clk)
                                         sig_step<=Bode2;
                                     end if;
                        when Bode2 => allow_bode<='1';
+                                     sig_strb <= '1';
                                      sig_step <= PreWaiting;
-                       when PreWaiting => sig_step <=Waiting;
-                                          sig_strb <= '1';
+                       when PreWaiting => sig_step <=Waiting;                    
                        when others => sig_step <= Waiting;
                   end case;
              end if;
