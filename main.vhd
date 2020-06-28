@@ -71,26 +71,27 @@ COMPONENT DUT is
 
 COMPONENT Int_Pmod_DA2
 	PORT(
-	   CLK : in  STD_LOGIC;
+	       CLK : in  STD_LOGIC;
            CS : out  STD_LOGIC;
-	   D1 : out std_logic;
-	   D2 : out std_logic;
+		   D1 : out std_logic;
+		   D2 : out std_logic;
            SCLK : out  STD_LOGIC;
            DATA1 : in  STD_LOGIC_VECTOR (11 downto 0);
            DATA2 : in  STD_LOGIC_VECTOR (11 downto 0);
-	   STRB : IN STD_LOGIC);
+		   STRB : IN STD_LOGIC);
  END COMPONENT;
  
 begin
     
     Inst_TestTool: TestTool PORT MAP(
- 	clk => clk, 
-        rx => rx,   
-        tx => tx,   
-        sig_A => sig_for_DUT_1, 
-        sig_B => sig_for_DUT_2, 
-        sig_from_DUT => sig_from_DUT, 
-        sig_strb => strb_DUT 
+		clk => clk, -- clock connectée à l'horloge de la carte (reglée à 100Mhz)
+        rx => rx,   -- rx connecté au port rx de la carte
+        tx => tx,   -- tx connecté au port tx de la carte
+        sig_A => sig_for_DUT_1, -- signal généré A connecté à une entrée d'un dispositif à tester, 
+                                -- signal utilisé lors de l'utilisation de diagramme de Bode
+        sig_B => sig_for_DUT_2, -- signal généré B connecté à une entrée d'un dispositif à tester
+        sig_from_DUT => sig_from_DUT, -- signal de sortie d'un dispositif à tester en cas de l'utilisation de diagramme de Bode
+        sig_strb => strb_DUT -- signal strob pour les dispositif à tester, '1' => génération de signaux ou diagramme de bode, '0' sinon
     );
     
     Inst_DUT: DUT PORT MAP(
@@ -101,9 +102,9 @@ begin
      );
     
     Inst_Int_Pmod_DA2: Int_Pmod_DA2 PORT MAP(
-	CLK => clk,
+	    CLK => clk,
         CS => cs,
-	D1 => d1,
+		D1 => d1,
         D2 => d2,
         SCLK => sclk,
         DATA1 => data1,
@@ -119,7 +120,7 @@ begin
 			if cnt = 0 then
 				strb_pmodda2 <= '1';
 		        data1 <= not(sig_for_DUT_1(15)) & sig_for_DUT_1(14 downto 4);
-			    data2 <= not(sig_from_DUT(15)) & sig_from_DUT(14 downto 4);
+			    data2 <= not(sig_for_DUT_2(15)) & sig_for_DUT_2(14 downto 4);
 			end if;
 		end if;
 	end process;
