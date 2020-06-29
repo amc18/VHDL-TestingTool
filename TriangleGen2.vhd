@@ -35,14 +35,18 @@ begin
     -- Phase accumulator
     process(clk)
     begin 
-        if (rising_edge(clk) and allow='1') then
-            if sig_pa(32)='0' then
-                sig_pa<=sig_pa+('0'&sig_m); 
-                sig_out<=not(sig_pa(31)) & sig_pa(30 downto 16); -- rising ramp
+        if rising_edge(clk) then   
+            if allow='1' then
+                 if sig_pa(32)='0' then
+                     sig_pa<=sig_pa+('0'&sig_m); 
+                     sig_out<=not(sig_pa(31)) & sig_pa(30 downto 16); -- rising ramp
+                 else 
+                     sig_pa<=sig_pa+('0'&sig_n); 
+                     sig_out<=sig_pa(31) & not(sig_pa(30 downto 16)); -- falling ramp
+               end if; 
             else 
-                sig_pa<=sig_pa+('0'&sig_n); 
-                sig_out<=sig_pa(31) & not(sig_pa(30 downto 16)); -- falling ramp
-           end if;   
+                 sig_pa <= (others => '0');
+            end if;
         end if;
     end process;
 

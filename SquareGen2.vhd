@@ -30,15 +30,17 @@ architecture Behavioral of SquareGen2 is
     signal sig_pa : std_logic_vector(31 downto 0);
     
 begin
-    --Phase accumulator
     process(clk)
     begin 
-        if rising_edge(clk) and allow='1' then
-             sig_pa<=sig_pa+sig_m;
-             if (sig_pa(31 downto 16)) > sig_c then -- comparation with duty cycle coeffient
-                sig_out<="1000000000000001";        
-             else sig_out<="0111111111111111";
-             end if;
+        if rising_edge(clk) then
+            if allow='1' then
+                sig_pa<=sig_pa+sig_m;
+                if (sig_pa(31 downto 16)) > sig_c then -- comparation with duty cycle coeffient
+                     sig_out<="1000000000000001";        
+                else sig_out<="0111111111111111";
+                end if;
+            else sig_pa <= (others => '0');
+            end if;
         end if;
     end process;
 

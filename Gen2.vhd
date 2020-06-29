@@ -261,8 +261,12 @@ Inst_NoiseGen:NoiseGen2 PORT MAP(
     -- Phase Accumulator used of sinus generation
     process(clk)
     begin 
-        if rising_edge(clk) and allow='1' then
+        if rising_edge(clk) then
+            if  allow='1' then
                  sig_pa<=sig_pa+sig_m;
+            else
+                 sig_pa<=(others => '0');
+            end if;
         end if;
     end process;
 

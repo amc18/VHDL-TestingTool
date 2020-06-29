@@ -176,7 +176,7 @@ Inst_NoiseGen:NoiseGen PORT MAP(
             case state_in1 is 
                 when Waiting => 
                     if data_in/="00000000" then
-                        sig_sel<=data_in; -- use of generator
+                        sig_sel<=data_in; -- use of generator 
                         case data_in is 
                             when "00000001" => state_in1 <= Sinus;
                                                state_out <= Sinus;
@@ -335,18 +335,26 @@ Inst_NoiseGen:NoiseGen PORT MAP(
     -- Phase Accumulator used of sinus generation
     process(clk)
     begin 
-        if rising_edge(clk) and allow='1' then
+        if rising_edge(clk) then
+            if  allow='1' then
                  sig_pa<=sig_pa+sig_m;
+            else
+                 sig_pa<=(others => '0');
+            end if;
         end if;
     end process;
     -- Phase Accumulator used of custom signal generation
     process(clk)
     begin 
-        if rising_edge(clk) and allow='1' then
+        if rising_edge(clk) then
+            if allow='1' then
                  sig_ram_cpt_2<=sig_ram_cpt_2+sig_m;
                  if sig_ram_cpt_2(31 downto 16)=sig_c then -- limitation of RAM lecture 
-                    sig_ram_cpt_2(31 downto 16)<="0000000000000000";
+                    sig_ram_cpt_2(31 downto 16)<=(others => '0');
                  end if;
+            else 
+                 sig_ram_cpt_2 <= (others => '0');
+            end if;
         end if;
     end process;
 
