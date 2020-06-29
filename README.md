@@ -16,28 +16,50 @@ Memory (ROM and RAM) must be instantiated thanks IP Catalog
 Project Hierarchy
 
 Design Sources	
+
 	main.vhd
+	
 		TestTool.vhd
+		
 			uart_rx.vhd
+			
 			rs232_tx.vhd
+			
 			Bode_Plot.vhd
+			
 				blk_mem_gen_0
+				
 			Gen1.vhd
 				blk_mem_gen_1
+				
 				blk_mem_gen_3
+				
 				SquareGen.vhd
+				
 				TriangleGen.vhd
+				
 				NoiseGen.vhd
+				
 			Gen2.vhd
 				blk_mem_gen_2
+				
 				SquareGen2.vhd
+				
 				TriangleGen2.vhd
+				
 				NoiseGen2.vhd
+				
 		DUT.vhd
+		
 		Int_Pmod_DA2.vhd
+		
 
 Coefficient Files
+
 	signed_sinus_16_bits.coe
 	
+	
 Constraints
+
 	Basys3_Master.xdc
+	
